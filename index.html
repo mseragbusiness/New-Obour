@@ -6,81 +6,93 @@
 
 <title>عقارات العبور الجديدة</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <style>
-body{
-  font-family: Arial;
+body {
   margin:0;
-  background:#f2f3f5;
+  font-family:Arial;
+  background:#f6f7fb;
 }
 
 /* Header */
-.header{
+.header {
   background:#0F9D58;
   color:white;
-  padding:15px;
+  padding:15px 25px;
   display:flex;
   justify-content:space-between;
+  align-items:center;
+}
+
+/* Hero Section */
+.hero {
+  background:#e8f5e9;
+  padding:30px;
+  text-align:center;
+}
+
+.hero h1 {
+  margin:0;
 }
 
 /* Container */
-.container{
-  width:90%;
+.container {
+  width:95%;
   max-width:1100px;
   margin:auto;
 }
 
-/* Boxes */
-.box{
-  background:white;
-  padding:15px;
-  margin-top:15px;
-  border-radius:10px;
-}
-
-/* Inputs */
-input, select{
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-}
-
-/* Buttons */
-button{
-  padding:10px;
-  margin-top:10px;
-  border:none;
-  background:#0F9D58;
-  color:white;
-}
-
-/* Grid */
-.grid{
+/* Cards Grid */
+.grid {
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-  gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:15px;
 }
 
-/* Card */
-.card{
+.card {
   background:white;
-  border-radius:10px;
+  border-radius:12px;
   overflow:hidden;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
 }
 
-.card img{
+.card img {
   width:100%;
   height:180px;
   object-fit:cover;
 }
 
-.card-content{
+.card-content {
   padding:10px;
 }
 
-.price{
-  color:green;
+.price {
+  color:#0F9D58;
   font-weight:bold;
+}
+
+/* Forms */
+.box {
+  background:white;
+  padding:15px;
+  margin-top:15px;
+  border-radius:12px;
+}
+
+input, select {
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+}
+
+button {
+  padding:10px;
+  background:#0F9D58;
+  color:white;
+  border:none;
+  margin-top:10px;
+  width:100%;
 }
 </style>
 
@@ -90,21 +102,34 @@ button{
 
 <!-- ✅ Header -->
 <div class="header">
-  <div>🏠 عقارات العبور</div>
+  <b>🏠 عقارات العبور</b>
   <div id="userBox"></div>
+</div>
+
+<!-- ✅ Hero -->
+<div class="hero">
+  <h1>اعرف أفضل عقارات العبور الجديدة</h1>
+  <p>بيع - إيجار - استثمار</p>
 </div>
 
 <div class="container">
 
-<!-- ✅ Login -->
+<!-- ✅ Register Login -->
 <div class="box" id="authBox">
-<h3>تسجيل الدخول</h3>
-<input id="email" placeholder="اكتب الإيميل">
-<button onclick="login()">دخول</button>
+
+<h3>إنشاء حساب</h3>
+
+<input id="name" placeholder="اسمك">
+<input id="phone" placeholder="رقم الموبايل">
+<input id="job" placeholder="وظيفتك">
+
+<button onclick="register()">دخول</button>
+
 </div>
 
-<!-- ✅ Add -->
+<!-- ✅ Add Property -->
 <div class="box" id="addBox" style="display:none">
+
 <h3>➕ أضف عقار</h3>
 
 <input id="title" placeholder="عنوان">
@@ -117,15 +142,11 @@ button{
 </select>
 
 <button onclick="add()">نشر</button>
-</div>
 
-<!-- ✅ Search -->
-<div class="box">
-<input id="search" placeholder="ابحث...">
-<button onclick="load()">بحث</button>
 </div>
 
 <h3>📋 الإعلانات</h3>
+
 <div id="list" class="grid"></div>
 
 </div>
@@ -137,28 +158,48 @@ const client = supabase.createClient(
 "sb_publishable_lsvnFbezPvWjjhVKkbHSXQ_HSYgsjZf"
 );
 
+// ✅ user
 let user=null;
 
-// ✅ login
-async function login(){
-  let email=document.getElementById("email").value;
-  await client.auth.signInWithOtp({email});
-  alert("افتح اللينك اللي في الإيميل");
+// ✅ register once
+async function register(){
+
+  let name = document.getElementById("name").value;
+  let phone = document.getElementById("phone").value;
+  let job = document.getElementById("job").value;
+
+  if(!name || !phone){
+    alert("اكمل البيانات");
+    return;
+  }
+
+  // ✅ حفظ في DB
+  let { data } = await client.from("users").insert([{
+    name,
+    phone,
+    job
+  }]).select();
+
+  user = data[0];
+
+  localStorage.setItem("user", JSON.stringify(user));
+
+  document.getElementById("authBox").style.display="none";
+  document.getElementById("addBox").style.display="block";
+
+  load();
 }
 
-// ✅ check user
-setTimeout(async ()=>{
-  let {data}=await client.auth.getUser();
-  if(data.user){
-    user=data.user;
-    document.getElementById("authBox").style.display="none";
-    document.getElementById("addBox").style.display="block";
-    document.getElementById("userBox").innerHTML="✅ Logged";
-  }
-  load();
-},2000);
+// ✅ استرجاع المستخدم
+let savedUser = localStorage.getItem("user");
 
-// ✅ add
+if(savedUser){
+  user = JSON.parse(savedUser);
+  document.getElementById("authBox").style.display="none";
+  document.getElementById("addBox").style.display="block";
+}
+
+// ✅ add property
 async function add(){
   await client.from("properties").insert([{
     title:title.value,
@@ -170,22 +211,14 @@ async function add(){
   load();
 }
 
-// ✅ load
+// ✅ load properties
 async function load(){
 
-  let search=document.getElementById("search").value;
+  let { data } = await client.from("properties").select("*");
 
-  let query = client.from("properties").select("*");
-
-  if(search){
-    query = query.ilike("title", `%${search}%`);
-  }
-
-  let {data}=await query;
-
-  document.getElementById("list").innerHTML=data.map(p=>`
+  document.getElementById("list").innerHTML = data.map(p => `
     <div class="card">
-      <img src="${     <div class="card-content">
+      <img src="${p.image>
         <h4>${p.title}</h4>
         <p class="price">${p.price} جنيه</p>
         <p>${p.type}</p>
