@@ -1,99 +1,21 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>لوحة التحكم</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-<style>
-body{font-family:Arial;background:#f5f6f9;margin:0}
-
-.header{
-  background:#0F9D58;
-  color:white;
-  padding:15px;
-  text-align:center;
-}
-
-.container{
-  width:95%;
-  max-width:1100px;
-  margin:auto;
-}
-
-.card{
-  background:white;
-  padding:15px;
-  margin-top:15px;
-  border-radius:10px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-  gap:10px;
-}
-
-.stat{
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
-}
-
-button{
-  padding:6px;
-  margin-top:5px;
-  background:#0F9D58;
-  border:none;
-  color:white;
-  width:100%;
-}
-
-.delete{background:red}
-.feature{background:orange}
-</style>
-
 </head>
 
-<body>
+<body style="font-family:Arial;padding:20px">
 
-<div class="header">
-👑 لوحة التحكم - عقارات العبور
-</div>
+<h2>📊 Dashboard</h2>
 
-<div class="container">
+<p>عدد المستخدمين: <span id="u">0</span></p>
+<p>عدد العقارات: <span id="p">0</span></p>
 
-<!-- ✅ STATS -->
-<div class="grid">
-
-<div class="card">
-  <div>عدد المستخدمين</div>
-  <div id="usersCount" class="stat">0</div>
-</div>
-
-<div class="card">
-  <div>عدد الإعلانات</div>
-  <div id="propertiesCount" class="stat">0</div>
-</div>
-
-</div>
-
-<!-- ✅ USERS -->
-<div class="card">
-<h3>👤 المستخدمين</h3>
-<div id="users"></div>
-</div>
-
-<!-- ✅ PROPERTIES -->
-<div class="card">
-<h3>🏠 الإعلانات</h3>
-<div id="properties"></div>
-</div>
-
-</div>
+<div id="list"></div>
 
 <script>
 
@@ -102,65 +24,21 @@ const client = supabase.createClient(
   "sb_publishable_lsvnFbezPvWjjhVKkbHSXQ_HSYgsjZf"
 );
 
-// ✅ تحميل البيانات
 async function load(){
 
-  // ✅ عدد المستخدمين
-  let { count: usersCount } = await client
-    .from("users")
-    .select("*", { count: "exact", head: true });
+let { count:u } = await client.from("users")
+.select("*",{count:"exact",head:true});
 
-  document.getElementById("usersCount").innerText = usersCount;
+let { count:p } = await client.from("properties")
+.select("*",{count:"exact",head:true});
 
-  // ✅ عدد العقارات
-  let { count: propertiesCount } = await client
-    .from("properties")
-    .select("*", { count: "exact", head: true });
+document.getElementById("u").innerText=u;
+document.getElementById("p").innerText=p;
 
-  document.getElementById("propertiesCount").innerText = propertiesCount;
+let { data } = await client.from("properties").select("*");
 
-  // ✅ المستخدمين
-  let { data: users } = await client.from("users").select("*").limit(10);
-
-  document.getElementById("users").innerHTML =
-    users.map(u => `
-      <div class="card">
-        ${u.name} - ${u.phone} <br>
-        ${u.job}
-      </div>
-    `).join("");
-
-  // ✅ العقارات
-  let { data: props } = await client.from("properties").select("*");
-
-  document.getElementById("properties").innerHTML =
-    props.map(p => `
-      <div class="card">
-        <b>${p.title}</b><br>
-        ${p.price} جنيه
-
-        <button class="delete" onclick="remove('${p.id}')">
-          حذف ❌
-        </button>
-
-        <button class="feature" onclick="makeFeatured('${p.id}')">
-          ⭐ تمييز
-        </button>
-
-      </div>
-    `).join("");
-}
-
-// ✅ حذف إعلان
-async function remove(id){
-  await client.from("properties").delete().eq("id",id);
-  load();
-}
-
-// ✅ تمييز إعلان
-async function makeFeatured(id){
-  await client.from("properties").update({ featured: true }).eq("id",id);
-  load();
+document.getElementById("list").innerHTML =
+data.map(i=>`<p>${i.title} - ${i.price}</p>`).join("");
 }
 
 load();
@@ -169,4 +47,3 @@ load();
 
 </body>
 </html>
-``
