@@ -12,14 +12,10 @@
 body{font-family:Arial;margin:0;background:#f5f6f9}
 .header{background:#0F9D58;color:white;padding:15px;text-align:center}
 .container{max-width:1000px;margin:auto;padding:15px}
-
 .box{background:white;padding:15px;margin-top:15px;border-radius:10px}
 input,select{width:100%;padding:10px;margin-top:5px}
-
 button{padding:10px;background:#0F9D58;color:white;border:none;margin-top:5px;width:100%}
-
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-
 .card{background:white;border-radius:10px;overflow:hidden}
 .card img{width:100%;height:150px;object-fit:cover}
 </style>
@@ -67,7 +63,7 @@ const client = supabase.createClient(
 
 let user = null;
 
-// ✅ تسجيل المستخدم
+// تسجيل مستخدم
 async function register(){
   let nameVal = document.getElementById("name").value;
   let phoneVal = document.getElementById("phone").value;
@@ -78,66 +74,53 @@ async function register(){
     return;
   }
 
-  let { data, error } = await client
-    .from("users")
-    .insert([
-      { name: nameVal, phone: phoneVal, job: jobVal }
-    ])
-    .select();
+  let response = await client.from("users").insert([
+    { name: nameVal, phone: phoneVal, job: jobVal }
+  ]).select();
 
-  if(error){
-    console.log(error);
-    alert("في مشكلة في التسجيل");
-    return;
-  }
-
-  user = data[0];
+  user = response.data[0];
 
   alert("✅ تم تسجيلك");
 }
 
-// ✅ إضافة عقار
+// إضافة عقار
 async function add(){
+
   if(!user){
     alert("سجل الأول");
     return;
   }
 
-  let { error } = await client
-    .from("properties")
-    .insert([
-      {
-        title: title.value,
-        price: price.value,
-        image: image.value,
-        type: type.value,
-        user_id: user.id
-      }
-    ]);
-
-  if(error){
-    console.log(error);
-    alert("في مشكلة");
-    return;
-  }
+  await client.from("properties").insert([
+    {
+      title: title.value,
+      price: price.value,
+      image: image.value,
+      type: type.value,
+      user_id: user.id
+    }
+  ]);
 
   load();
 }
 
-// ✅ تحميل البيانات
+// تحميل
 async function load(){
+
   let { data } = await client.from("properties").select("*");
 
   document.getElementById("list").innerHTML =
-    data.map(p =>
-      `<div class="card" onclick="go('${p.id}')">
-        <img src="${p.image<h4>${p.title}</h4>
-        <p>${p.price} جنيه</p>
-      </div>`
-    ).join("");
+    data.map(function(p){
+      return '<div class="card" onclick="go("' + p.id + '")">' +
+      '<img src="' + p.image + '">' +
+      '<h4>' + p.title + '</h4>' +
+      '<p>' + p.price + ' جنيه</p>' +
+      '</div>';
+    }).join("");
+
 }
 
-// ✅ فتح التفاصيل
+// انتقال
 function go(id){
   location.href = "details.html?id=" + id;
 }
