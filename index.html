@@ -1,27 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>عقارات العبور الجديدة</title>
+<meta charset="UTF-8">
+<title>عقارات العبور الجديدة</title>
+https://cdn.jsdelivr.net/npm/@supabase/supabase-jsscript>
 </head>
 
-<body style="font-family: Arial; text-align: center; padding: 50px;">
+<body style="font-family:Arial; text-align:center;">
 
-  <h1>🏠 عقارات العبور الجديدة</h1>
+<h1>🏠 عقارات العبور الجديدة</h1>
 
-  <p>أهلاً بيك في أول موقع متخصص في العبور الجديدة</p>
+<input id="title" placeholder="عنوان العقار"><br><br>
+<input id="price" placeholder="السعر"><br><br>
+<input id="image" placeholder="رابط الصورة"><br><br>
 
-  <a href="https://wa.me/201010081809">
-    <button style="padding: 15px; background: green; color: white; border: none;">
-      تواصل واتساب 📱
-    </button>
-  </a>
+<button onclick="add()">نشر</button>
 
-  <h2>إعلانات</h2>
+<h2>الإعلانات</h2>
+<div id="list"></div>
 
-  <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-    شقة للبيع - 1,500,000 جنيه
-  </div>
+<script>
+const supabase = supabase.createClient(
+"https://mshsbgdsazycavbvgmbp.supabase.co",
+"sb_publishable_lsvnFbezPvWjjhVKkbHSXQ_HSYgsjZf"
+);
+
+async function add() {
+let title = document.getElementById("title").value;
+let price = document.getElementById("price").value;
+let image = document.getElementById("image").value;
+
+await supabase.from("properties").insert([{title,price,image}]);
+load();
+}
+
+async function load() {
+let { data } = await supabase.from("properties").select("*");
+document.getElementById("list").innerHTML = data.map(p =>
+`<div style="border:1px solid #ccc; margin:10px;">
+${p.image}<br>
+${p.title} - ${p.price}
+</div>`
+).join("");
+}
+
+load();
+</script>
 
 </body>
 </html>
