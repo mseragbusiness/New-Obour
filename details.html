@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>تفاصيل</title>
+https://cdn.jsdelivr.net/npm/@supabase/supabase-js>
+</head>
+
+<body>
+
+<div id="data"></div>
+
+<script>
+
+const client = supabase.createClient(
+"PUT_URL_HERE",
+"PUT_KEY_HERE"
+);
+
+let id=new URLSearchParams(window.location.search).get("id");
+
+async function load(){
+
+let {data}=await client.from("properties").select("*").eq("id",id).single();
+
+document.getElementById("data").innerHTML=`
+${data.image}
+<h2>${data.title}</h2>
+<p>${data.price} جنيه</p>
+<p>${data.description}</p>
+
+https://maps.google.com/maps?q=${data.lat},${data.lng}&output=embed
+</iframe>
+
+https://wa.me/201010081809
+<button>واتساب</button>
+</a>
+`;
+
+}
+
+load();
+
+</script>
+
+</body>
+</html>
