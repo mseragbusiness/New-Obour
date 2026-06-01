@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>عقارات العبور الجديدة</title>
+<title>عقارات العبور</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
@@ -22,7 +22,6 @@ button{padding:10px;background:#0F9D58;color:white;border:none;margin-top:5px;wi
 
 .card{background:white;border-radius:10px;overflow:hidden}
 .card img{width:100%;height:150px;object-fit:cover}
-.price{color:green;font-weight:bold}
 </style>
 </head>
 
@@ -66,45 +65,81 @@ const client = supabase.createClient(
   "sb_publishable_lsvnFbezPvWjjhVKkbHSXQ_HSYgsjZf"
 );
 
-let user=null;
+let user = null;
 
+// ✅ تسجيل المستخدم
 async function register(){
-  let { data } = await client.from("users").insert([{
-    name:name.value,
-    phone:phone.value,
-    job:job.value
-  }]).select();
+  let nameVal = document.getElementById("name").value;
+  let phoneVal = document.getElementById("phone").value;
+  let jobVal = document.getElementById("job").value;
+
+  if(!nameVal || !phoneVal){
+    alert("اكمل البيانات");
+    return;
+  }
+
+  let { data, error } = await client
+    .from("users")
+    .insert([
+      { name: nameVal, phone: phoneVal, job: jobVal }
+    ])
+    .select();
+
+  if(error){
+    console.log(error);
+    alert("في مشكلة في التسجيل");
+    return;
+  }
 
   user = data[0];
+
   alert("✅ تم تسجيلك");
 }
 
+// ✅ إضافة عقار
 async function add(){
-  await client.from("properties").insert([{
-    title:title.value,
-    price:price.value,
-    image:image.value,
-    type:type.value,
-    user_id:user?.id
-  }]);
+  if(!user){
+    alert("سجل الأول");
+    return;
+  }
+
+  let { error } = await client
+    .from("properties")
+    .insert([
+      {
+        title: title.value,
+        price: price.value,
+        image: image.value,
+        type: type.value,
+        user_id: user.id
+      }
+    ]);
+
+  if(error){
+    console.log(error);
+    alert("في مشكلة");
+    return;
+  }
 
   load();
 }
 
+// ✅ تحميل البيانات
 async function load(){
   let { data } = await client.from("properties").select("*");
 
   document.getElementById("list").innerHTML =
-  data.map(p=>`
-    <div class="card" onclick="go('${p.id}')">
-      <img src="${p    <h4>${p.title}</h4>
-      <p class="price">${p.price} جنيه</p>
-    </div>
-  `).join("");
+    data.map(p =>
+      `<div class="card" onclick="go('${p.id}')">
+        <img src="${p.image<h4>${p.title}</h4>
+        <p>${p.price} جنيه</p>
+      </div>`
+    ).join("");
 }
 
+// ✅ فتح التفاصيل
 function go(id){
-  location.href="details.html?id="+id;
+  location.href = "details.html?id=" + id;
 }
 
 load();
