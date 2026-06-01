@@ -109,6 +109,11 @@ async function load(){
 
   let { data } = await client.from("properties").select("*");
 
+if(!data){
+  document.getElementById("list").innerHTML = "لا توجد بيانات";
+  return;
+}
+
   document.getElementById("list").innerHTML =
     data.map(function(p){
       return '<div class="card" onclick="go("' + p.id + '")">' +
