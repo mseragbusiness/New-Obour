@@ -2,136 +2,46 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>عقارات العبور الجديدة</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:#f6f7fb;
-}
+body{font-family:Arial;margin:0;background:#f5f6f9}
+.header{background:#0F9D58;color:white;padding:15px;text-align:center}
+.container{max-width:1000px;margin:auto;padding:15px}
 
-/* Header */
-.header {
-  background:#0F9D58;
-  color:white;
-  padding:15px 25px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
+.box{background:white;padding:15px;margin-top:15px;border-radius:10px}
+input,select{width:100%;padding:10px;margin-top:5px}
 
-/* Hero Section */
-.hero {
-  background:#e8f5e9;
-  padding:30px;
-  text-align:center;
-}
+button{padding:10px;background:#0F9D58;color:white;border:none;margin-top:5px;width:100%}
 
-.hero h1 {
-  margin:0;
-}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 
-/* Container */
-.container {
-  width:95%;
-  max-width:1100px;
-  margin:auto;
-}
-
-/* Cards Grid */
-.grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:15px;
-}
-
-.card {
-  background:white;
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:0 3px 10px rgba(0,0,0,0.1);
-}
-
-.card img {
-  width:100%;
-  height:180px;
-  object-fit:cover;
-}
-
-.card-content {
-  padding:10px;
-}
-
-.price {
-  color:#0F9D58;
-  font-weight:bold;
-}
-
-/* Forms */
-.box {
-  background:white;
-  padding:15px;
-  margin-top:15px;
-  border-radius:12px;
-}
-
-input, select {
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-}
-
-button {
-  padding:10px;
-  background:#0F9D58;
-  color:white;
-  border:none;
-  margin-top:10px;
-  width:100%;
-}
+.card{background:white;border-radius:10px;overflow:hidden}
+.card img{width:100%;height:150px;object-fit:cover}
+.price{color:green;font-weight:bold}
 </style>
-
 </head>
 
 <body>
 
-<!-- ✅ Header -->
-<div class="header">
-  <b>🏠 عقارات العبور</b>
-  <div id="userBox"></div>
-</div>
-
-<!-- ✅ Hero -->
-<div class="hero">
-  <h1>اعرف أفضل عقارات العبور الجديدة</h1>
-  <p>بيع - إيجار - استثمار</p>
-</div>
+<div class="header">🏠 عقارات العبور</div>
 
 <div class="container">
 
-<!-- ✅ Register Login -->
-<div class="box" id="authBox">
-
+<div class="box">
 <h3>إنشاء حساب</h3>
-
 <input id="name" placeholder="اسمك">
 <input id="phone" placeholder="رقم الموبايل">
 <input id="job" placeholder="وظيفتك">
-
 <button onclick="register()">دخول</button>
-
 </div>
 
-<!-- ✅ Add Property -->
-<div class="box" id="addBox" style="display:none">
-
-<h3>➕ أضف عقار</h3>
-
+<div class="box">
+<h3>➕ إضافة عقار</h3>
 <input id="title" placeholder="عنوان">
 <input id="price" placeholder="السعر">
 <input id="image" placeholder="رابط الصورة">
@@ -142,11 +52,9 @@ button {
 </select>
 
 <button onclick="add()">نشر</button>
-
 </div>
 
 <h3>📋 الإعلانات</h3>
-
 <div id="list" class="grid"></div>
 
 </div>
@@ -158,73 +66,45 @@ const client = supabase.createClient(
   "sb_publishable_lsvnFbezPvWjjhVKkbHSXQ_HSYgsjZf"
 );
 
-// ✅ user
 let user=null;
 
-// ✅ register once
 async function register(){
-
-  let name = document.getElementById("name").value;
-  let phone = document.getElementById("phone").value;
-  let job = document.getElementById("job").value;
-
-  if(!name || !phone){
-    alert("اكمل البيانات");
-    return;
-  }
-
-  // ✅ حفظ في DB
   let { data } = await client.from("users").insert([{
-    name,
-    phone,
-    job
+    name:name.value,
+    phone:phone.value,
+    job:job.value
   }]).select();
 
   user = data[0];
-
-  localStorage.setItem("user", JSON.stringify(user));
-
-  document.getElementById("authBox").style.display="none";
-  document.getElementById("addBox").style.display="block";
-
-  load();
+  alert("✅ تم تسجيلك");
 }
 
-// ✅ استرجاع المستخدم
-let savedUser = localStorage.getItem("user");
-
-if(savedUser){
-  user = JSON.parse(savedUser);
-  document.getElementById("authBox").style.display="none";
-  document.getElementById("addBox").style.display="block";
-}
-
-// ✅ add property
 async function add(){
   await client.from("properties").insert([{
     title:title.value,
     price:price.value,
     image:image.value,
     type:type.value,
-    user_id:user.id
+    user_id:user?.id
   }]);
+
   load();
 }
 
-// ✅ load properties
 async function load(){
-
   let { data } = await client.from("properties").select("*");
 
-  document.getElementById("list").innerHTML = data.map(p => `
-    <div class="card">
-      <img src="${p.image>
-        <h4>${p.title}</h4>
-        <p class="price">${p.price} جنيه</p>
-        <p>${p.type}</p>
-      </div>
+  document.getElementById("list").innerHTML =
+  data.map(p=>`
+    <div class="card" onclick="go('${p.id}')">
+      <img src="${p    <h4>${p.title}</h4>
+      <p class="price">${p.price} جنيه</p>
     </div>
   `).join("");
+}
+
+function go(id){
+  location.href="details.html?id="+id;
 }
 
 load();
